@@ -75,11 +75,28 @@ void printMatrix() {
   Serial.print("\n");
   free(buff);
 }
-
+int row = 3;
+int col = 5;
 void loop() {
   resetOutputs();
-  readMatrix();
+  //readMatrix();
   //printMatrix();
+  
+ for(int x = 0; x < NUM_ROWS; x++) {
+    if (x != row) {
+      digitalWrite(ROWS[x], LOW);
+    } else {
+      digitalWrite(ROWS[x], HIGH);
+    }
+  }
+  int output = digitalRead(COLS[col]);
+  if (output == LOW) {
+    Serial.printf("%dx%d has been pressed: %c\n", row,col,DEFAULT_FACE[row][col]);
+  }
+  col = (col + 1) % NUM_COLS;
+  if (col == (NUM_COLS - 1)) {
+    row = (row + 1) % NUM_ROWS;
+  }
 }
 
 
