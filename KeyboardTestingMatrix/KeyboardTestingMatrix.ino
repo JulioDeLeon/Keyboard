@@ -85,7 +85,9 @@ void loop() {
  for(int x = 0; x < NUM_ROWS; x++) {
     if (x != row) {
       digitalWrite(ROWS[x], LOW);
+      //pinMode(ROWS[x], INPUT);
     } else {
+     // pinMode(ROWS[x], OUTPUT);
       digitalWrite(ROWS[x], HIGH);
     }
   }
