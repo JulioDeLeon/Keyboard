@@ -1,8 +1,6 @@
 #include "types.h"
-
-int inputs[] = {2,3,4,5,6,7,8,14,15,16,17,18,19,20,21,22,23};
-
-int OUTPUTS[NUM_ROWS][NUM_COLS] = {{0}};
+int row = 0;
+int col = 0;
 
 void resetOutputs() {
   for (int x = 0; x < NUM_ROWS; x++) {
@@ -75,8 +73,6 @@ void printMatrix() {
   Serial.print("\n");
   free(buff);
 }
-int row = 0;
-int col = 0;
 
 void setRow(int rowp) {
    for(int x = 0; x < NUM_ROWS; x++) {
@@ -94,17 +90,16 @@ void loop() {
   resetOutputs();
   //readMatrix();
   //printMatrix();
-   setRow(row);
-   delay(1); 
+   setRow(row); 
   int output = digitalRead(COLS[col]);
   if (output == LOW) {
     Serial.printf("%dx%d has been pressed: %c\n", row,col,DEFAULT_FACE[row][col]);
+    Keyboard.print(DEFAULT_FACE[row][col]);
+    delay(150);
   }
   row = (row + 1) % NUM_ROWS;
   if (row == NUM_ROWS -1) {
     col = (col + 1) % NUM_COLS; 
   }
 }
-
-
 
