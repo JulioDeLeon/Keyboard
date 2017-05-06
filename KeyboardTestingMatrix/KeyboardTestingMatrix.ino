@@ -75,29 +75,34 @@ void printMatrix() {
   Serial.print("\n");
   free(buff);
 }
-int row = 3;
-int col = 5;
+int row = 0;
+int col = 0;
+
+void setRow(int rowp) {
+   for(int x = 0; x < NUM_ROWS; x++) {
+    if (x != rowp) {
+      //digitalWrite(ROWS[x], LOW);
+      pinMode(ROWS[x], INPUT_PULLUP);
+    } else {
+      pinMode(ROWS[x], OUTPUT);
+      //digitalWrite(ROWS[x], LOW);
+    }
+  }
+}
+
 void loop() {
   resetOutputs();
   //readMatrix();
   //printMatrix();
-  
- for(int x = 0; x < NUM_ROWS; x++) {
-    if (x != row) {
-      digitalWrite(ROWS[x], LOW);
-      //pinMode(ROWS[x], INPUT);
-    } else {
-     // pinMode(ROWS[x], OUTPUT);
-      digitalWrite(ROWS[x], HIGH);
-    }
-  }
+   setRow(row);
+   delay(1); 
   int output = digitalRead(COLS[col]);
   if (output == LOW) {
     Serial.printf("%dx%d has been pressed: %c\n", row,col,DEFAULT_FACE[row][col]);
   }
-  col = (col + 1) % NUM_COLS;
-  if (col == (NUM_COLS - 1)) {
-    row = (row + 1) % NUM_ROWS;
+  row = (row + 1) % NUM_ROWS;
+  if (row == NUM_ROWS -1) {
+    col = (col + 1) % NUM_COLS; 
   }
 }
 

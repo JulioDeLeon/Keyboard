@@ -1,7 +1,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-const int ROWS[] = {6,5,4,3,2};
+const int ROWS[] = {2,3,4,5,6};
 const int NUM_ROWS = 5;
 const int COLS[] = {7,8,14,15,16,18,17,19,20,21,22,23};
 const int NUM_COLS = 12;
