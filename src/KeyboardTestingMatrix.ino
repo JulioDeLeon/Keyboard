@@ -1,6 +1,5 @@
 #include "types.h"
-int row = 0;
-int col = 0;
+
 
 void resetOutputs() {
   for (int x = 0; x < NUM_ROWS; x++) {
@@ -86,6 +85,9 @@ void setRow(int rowp) {
   }
 }
 
+int row = 0;
+int col = 0;
+
 void loop() {
   resetOutputs();
   //readMatrix();
@@ -97,9 +99,9 @@ void loop() {
     Keyboard.print(DEFAULT_FACE[row][col]);
     delay(150);
   }
-  row = (row + 1) % NUM_ROWS;
-  if (row == NUM_ROWS -1) {
-    col = (col + 1) % NUM_COLS; 
-  }
+//  row = (row + 1) % NUM_ROWS;
+//  if (row == NUM_ROWS -1) {
+//    col = (col + 1) % NUM_COLS; 
+//  }
 }
 
