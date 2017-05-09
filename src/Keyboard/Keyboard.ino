@@ -1,5 +1,9 @@
 #include "types.h"
 
+/*
+ * a
+ */
+
 void setup() {
   //start serial connection for printing
   Serial.begin(9600);
@@ -37,8 +41,11 @@ void loop() {
   int output = digitalRead(COLS[col]);
   if (output == LOW) {
     Serial.printf("%dx%d has been pressed: %c\n", row,col,DEFAULT_FACE[row][col]);
-    Keyboard.print(DEFAULT_FACE[row][col]);
+    //Keyboard.print(DEFAULT_FACE[row][col]);
+    Keyboard.press(DEFAULT_FACE[row][col]);
     delay(150);
+  } else {
+    Keyboard.release(DEFAULT_FACE[row][col]);
   }
   row = (row + 1) % NUM_ROWS;
   if (row == NUM_ROWS -1) {
