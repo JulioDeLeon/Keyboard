@@ -1,10 +1,10 @@
 #include "types.h"
+Coord *buff;
 
 void setup() {
-  //start serial connection for printing
   Serial.begin(9600);
   
-  for(int x = 0; x < NUM_ROWS; x++){
+  for(int x = 0; x < NUM_ROWS; x++) {
     pinMode(ROWS[x], OUTPUT);
     digitalWrite(ROWS[x], LOW);
   }
@@ -12,56 +12,127 @@ void setup() {
   for(int x = 0; x < NUM_COLS; x++) {
     pinMode(COLS[x], INPUT_PULLUP);
   }
+  
+  buff = (Coord*) malloc(sizeof(Coord) * NUM_OF_FINGERS);
+  for(int x = 0; x < NUM_OF_FINGERS; x++) {
+    buff[x].row = buff[x].col = 0;
+  }
 }
-
-
-int row = 0;
-int col = 0;
 
 void loop() {
-  Keyboard.set_modifier(checkModifiers());
-  setRow(row); 
-  if (checkKey(row,col)) {
-    Serial.printf("%dx%d has been pressed: %c\n", row,col,DEFAULT_FACE[row][col]);
-    Keyboard.press(DEFAULT_FACE[row][col]);
-    delay(150);
+  scanMatrix(buff);
+  flushBuff(buff);
+  delay(150);
+}
 
-  } else {
-    Keyboard.release(DEFAULT_FACE[row][col]);
-  }
-
-  row = (row + 1) % NUM_ROWS;
-  if (row == NUM_ROWS -1) {
-    col = (col + 1) % NUM_COLS; 
+void scanMatrix(Coord *buffp) {
+  Coord *itr = buffp;
+  int keysPressed = 0;
+  Coord point;
+  for(point.row = 0; point.row < NUM_ROWS; point.row++) {
+    setRow(point.row);
+    for(point.col = 0; point.col < NUM_COLS; point.col++) {
+      if(digitalRead(COLS[point.col]) == LOW) {
+        //pressed
+        (*itr).row = point.row;
+        (*itr).col = point.col;
+        itr++;
+        keysPressed++;
+        if(keysPressed == NUM_OF_FINGERS) {
+          return;
+        } 
+      } else {
+        Keyboard.release(DEFAULT_FACE[point.row][point.col]);
+        Keyboard.release(FUNCTION_FACE[point.row][point.col]);
+        Keyboard.release(LOWER_FACE[point.row][point.col]);
+        Keyboard.release(RAISE_FACE[point.row][point.col]);
+      }
+    }
   }
 }
 
-layer checkLayer() {
-  bool r = checkKey(RAISE_MOD_ROW, RAISE_MOD_COL);
-  bool l = checkKey(LOWER_MOD_ROW, LOWER_MOD_COL);
-  if( not (r xor l) ) {
-    return BASE;
-  } else if ( r and not l) {
-    return RAISE;
-  } else if ( l and not r) {
-    return LOWER;
+void flushBuff(Coord *buffp) {
+  //check buffer for modifiers
+  int modifiers = 0;
+  bool r = false;
+  bool l = false;
+  bool f = false;
+  layer face = BASE;
+  void *choosenLayer = malloc(sizeof(int) * NUM_ROWS * NUM_COLS);
+  
+  for(int x = 0; x < NUM_OF_FINGERS; x++) {
+    modifiers |= checkModifiers(buffp[x]);
+    //perform layer check if not trigger yet
+    if(r == false) {
+      r = isRaise(buffp[x]);
+    }
+    if(l == false) {
+      l = isLower(buffp[x]);
+    }
+    if(f == false) {
+      f  = isFunction(buffp[x]);
+    }
+  }
+  face = checkLayer(l,r,f);
+  //flush buffer  with the appriopate layer
+  Keyboard.set_modifier(modifiers);
+  switch(face) {
+    case FUNCTION :
+      memcpy(choosenLayer, FUNCTION_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
+      break;
+    case LOWER :
+      memcpy(choosenLayer, LOWER_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
+      break;
+    case RAISE :
+      memcpy(choosenLayer, RAISE_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
+      break;
+    default:
+      memcpy(choosenLayer, DEFAULT_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
+  }
+  for(int x = 0; x < NUM_OF_FINGERS; x++) {    
+    Keyboard.press(((int**)choosenLayer)[buffp[x].row][buffp[x].col]);
+  }
+  free(choosenLayer);
+}
+
+
+layer checkLayer(bool l, bool r, bool f) {
+  //function layer trumps other layers
+  if (f) {
+    return FUNCTION;
   } else {
-    return BASE;
+    if( not (r xor l) ) {
+      return BASE;
+    } else if ( r and not l) {
+      return RAISE;
+    } else if ( l and not r) {
+      return LOWER;
+    } else {
+      return BASE;
+    }
   }
 }
 
-int checkModifiers() {
+int checkModifiers(Coord coord) {
   int ret = 0;
-  ret |= (checkKey(LEFT_CTRL_ROW,LEFT_CTRL_COL))? MODIFIERKEY_CTRL : 0;
-  ret |= (checkKey(LEFT_ALT_ROW,LEFT_ALT_COL))? MODIFIERKEY_ALT : 0;
-  ret |= (checkKey(LEFT_SHIFT_ROW,LEFT_SHIFT_COL))? MODIFIERKEY_SHIFT : 0;
-  ret |= (checkKey(LEFT_GUI_ROW,LEFT_GUI_COL))? MODIFIERKEY_GUI : 0;
+  ret |= (isCtrl(coord))? MODIFIERKEY_CTRL : 0;
+  ret |= (isAlt(coord))? MODIFIERKEY_ALT : 0;
+  ret |= (isShift(coord))? MODIFIERKEY_SHIFT : 0;
+  ret |= (isGUI(coord))? MODIFIERKEY_GUI : 0;
   return ret;
 }
 
-bool checkKey(int rowP, int colP) {
-  setRow(rowP);
-  int output = digitalRead(COLS[colP]);
+bool isShift(Coord coord) { return (coord.row == LEFT_SHIFT_ROW) && (coord.col == LEFT_SHIFT_COL); }
+bool isCtrl(Coord coord) { return (coord.row == LEFT_CTRL_ROW) && (coord.col == LEFT_CTRL_COL); }
+bool isAlt(Coord coord) { return (coord.row == LEFT_ALT_ROW) && (coord.col == LEFT_ALT_COL); }
+bool isGUI(Coord coord) { return (coord.row == LEFT_GUI_ROW) && (coord.col == LEFT_GUI_COL); }
+bool isRaise(Coord coord) { return (coord.row == RAISE_MOD_ROW) && (coord.col == RAISE_MOD_COL); }
+bool isLower(Coord coord) { return (coord.row == LOWER_MOD_ROW) && (coord.col == LOWER_MOD_COL); }
+bool isFunction(Coord coord) { return (coord.row == LEFT_FUNCTION_ROW) && (coord.col == LEFT_FUNCTION_COL); }
+
+bool checkKey(Coord coord) {
+  setRow(coord.row);
+  int output = digitalRead(COLS[coord.col]);
   return output == LOW;
 }
 

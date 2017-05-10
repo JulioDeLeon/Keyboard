@@ -2,6 +2,7 @@
 #define TYPES_H
 #include <Bounce2.h>
 #define u_long unsigned long
+#define NUM_OF_FINGERS 10
 
 const u_long BOUNCE_TIME = 5;
 const int ROWS[] = {2,3,4,5,6};
@@ -30,9 +31,9 @@ const int RAISE_MOD_ROW = 4;
 const int LEFT_SHIFT_COL = 0;
 const int LEFT_SHIFT_ROW = 3;
 
-enum layer { BASE, LOWER, RAISE };
+enum layer { BASE, LOWER, RAISE, FUNCTION };
 
-const int DEFAULT_FACE[NUM_ROWS][NUM_COLS] = {
+int DEFAULT_FACE[NUM_ROWS][NUM_COLS] = {
   {KEY_ESC,KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0,KEY_BACKSPACE},
   {KEY_TAB,KEY_Q,KEY_W,KEY_E,KEY_R,KEY_T,KEY_Y,KEY_U,KEY_I,KEY_O,KEY_P,KEY_BACKSLASH},
   {0,KEY_A,KEY_S,KEY_D,KEY_F,KEY_G,KEY_H,KEY_J,KEY_K,KEY_L,KEY_SEMICOLON,KEY_QUOTE},
@@ -40,7 +41,7 @@ const int DEFAULT_FACE[NUM_ROWS][NUM_COLS] = {
   {KEY_LEFT_CTRL,KEY_LEFT_GUI,KEY_LEFT_ALT,0,0,KEY_SPACE,KEY_ENTER,0,KEY_LEFT,KEY_DOWN,KEY_UP,KEY_RIGHT}
 };
 
-const int FUNCTION_FACE[NUM_ROWS][NUM_COLS] = {
+int FUNCTION_FACE[NUM_ROWS][NUM_COLS] = {
   {0,0,0,0,0,0,0,0,0,0,0,0,},
   {0,0,0,0,0,0,0,0,0,0,0,0,},
   {0,0,0,0,0,0,0,0,0,0,0,0,},
@@ -48,11 +49,39 @@ const int FUNCTION_FACE[NUM_ROWS][NUM_COLS] = {
   {0,0,0,0,0,0,0,0,0,0,0,0,}
 };
 
+int LOWER_FACE[NUM_ROWS][NUM_COLS] = {
+  {0,0,0,0,0,0,0,0,0,0,0,0,},
+  {0,0,0,0,0,0,0,0,0,0,0,0,},
+  {0,0,0,0,0,0,0,0,0,0,0,0,},
+  {0,0,0,0,0,0,0,0,0,0,0,0,},
+  {0,0,0,0,0,0,0,0,0,0,0,0,}
+};
+
+int RAISE_FACE[NUM_ROWS][NUM_COLS] = {
+  {0,0,0,0,0,0,0,0,0,0,0,0,},
+  {0,0,0,0,0,0,0,0,0,0,0,0,},
+  {0,0,0,0,0,0,0,0,0,0,0,0,},
+  {0,0,0,0,0,0,0,0,0,0,0,0,},
+  {0,0,0,0,0,0,0,0,0,0,0,0,}
+};
+
+struct Coord {
+  int row;
+  int col;
+};
 
 // util functions
-layer checkLayer();
-int checkModifiers();
-bool checkKey(int row, int col);
+layer checkLayer(bool l, bool r);
+bool checkKey(Coord coord);
+int checkModifiers(Coord coord);
+bool isShift(Coord corrd);
+bool isCtrl(Coord coord);
+bool isAlt(Coord coord);
+bool isGUI(Coord coord);
+bool isRaise(Coord coord);
+bool isLower(Coord coord);
 void setRow(int row);
+void scanMatrix(Coord *buff);
+void flushBuff(Coord *buff);
 
 #endif
