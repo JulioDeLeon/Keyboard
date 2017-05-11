@@ -15,14 +15,14 @@ void setup() {
   
   buff = (Coord*) malloc(sizeof(Coord) * NUM_OF_FINGERS);
   for(int x = 0; x < NUM_OF_FINGERS; x++) {
-    buff[x].row = buff[x].col = 0;
+    buff[x].row = buff[x].col = -1;
   }
 }
 
 void loop() {
   scanMatrix(buff);
   flushBuff(buff);
-  delay(150);
+  delay(75);
 }
 
 void scanMatrix(Coord *buffp) {
@@ -78,19 +78,29 @@ void flushBuff(Coord *buffp) {
   Keyboard.set_modifier(modifiers);
   switch(face) {
     case FUNCTION :
+      Serial.printf("FUNCTION\n");
       memcpy(choosenLayer, FUNCTION_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
       break;
     case LOWER :
+      Serial.printf("LOWER\n");
       memcpy(choosenLayer, LOWER_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
       break;
     case RAISE :
+      Serial.printf("RAISE\n");
       memcpy(choosenLayer, RAISE_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
       break;
     default:
+      Serial.printf("DEFAULT\n");
       memcpy(choosenLayer, DEFAULT_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
   }
-  for(int x = 0; x < NUM_OF_FINGERS; x++) {    
-    Keyboard.press(((int**)choosenLayer)[buffp[x].row][buffp[x].col]);
+  for(int x = 0; x < NUM_OF_FINGERS; x++) {
+    if( (0 <= buffp[x].row && buffp[x].row < NUM_ROWS) && (0 <= buffp[x].col && buffp[x].col < NUM_COLS) ) {
+      Serial.printf("%dx%d \n", buffp[x].row, buffp[x].col);
+      Keyboard.press(DEFAULT_FACE[(buffp[x].row)][(buffp[x].col)]);
+      buffp[x].row = -1;
+      buffp[x].col = -1;
+      //Keyboard.press(KEY_A);
+    }
   }
   free(choosenLayer);
 }
@@ -128,7 +138,7 @@ bool isAlt(Coord coord) { return (coord.row == LEFT_ALT_ROW) && (coord.col == LE
 bool isGUI(Coord coord) { return (coord.row == LEFT_GUI_ROW) && (coord.col == LEFT_GUI_COL); }
 bool isRaise(Coord coord) { return (coord.row == RAISE_MOD_ROW) && (coord.col == RAISE_MOD_COL); }
 bool isLower(Coord coord) { return (coord.row == LOWER_MOD_ROW) && (coord.col == LOWER_MOD_COL); }
-bool isFunction(Coord coord) { return (coord.row == LEFT_FUNCTION_ROW) && (coord.col == LEFT_FUNCTION_COL); }
+bool isFunction(Coord coord) { return ((coord.row == LEFT_FUNCTION_ROW_1) && (coord.col == LEFT_FUNCTION_COL_1)) || ((coord.row == LEFT_FUNCTION_ROW_2) && (coord.col == LEFT_FUNCTION_COL_2)); }
 
 bool checkKey(Coord coord) {
   setRow(coord.row);
