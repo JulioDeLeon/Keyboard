@@ -58,7 +58,6 @@ void flushBuff(Coord *buffp) {
   bool l = false;
   bool f = false;
   layer face = BASE;
-  void *choosenLayer = malloc(sizeof(int) * NUM_ROWS * NUM_COLS);
   
   for(int x = 0; x < NUM_OF_FINGERS; x++) {
     modifiers |= checkModifiers(buffp[x]);
@@ -74,35 +73,32 @@ void flushBuff(Coord *buffp) {
     }
   }
   face = checkLayer(l,r,f);
-  //flush buffer  with the appriopate layer
   Keyboard.set_modifier(modifiers);
-  switch(face) {
-    case FUNCTION :
-      Serial.printf("FUNCTION\n");
-      memcpy(choosenLayer, FUNCTION_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
-      break;
-    case LOWER :
-      Serial.printf("LOWER\n");
-      memcpy(choosenLayer, LOWER_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
-      break;
-    case RAISE :
-      Serial.printf("RAISE\n");
-      memcpy(choosenLayer, RAISE_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
-      break;
-    default:
-      Serial.printf("DEFAULT\n");
-      memcpy(choosenLayer, DEFAULT_FACE, sizeof(int) * NUM_ROWS * NUM_COLS);
-  }
   for(int x = 0; x < NUM_OF_FINGERS; x++) {
     if( (0 <= buffp[x].row && buffp[x].row < NUM_ROWS) && (0 <= buffp[x].col && buffp[x].col < NUM_COLS) ) {
-      Serial.printf("%dx%d \n", buffp[x].row, buffp[x].col);
-      Keyboard.press(DEFAULT_FACE[(buffp[x].row)][(buffp[x].col)]);
+      Serial.printf("%dx%d ", buffp[x].row, buffp[x].col);
+      switch(face) {
+        case FUNCTION :
+          Serial.printf("FUNCTION\n");
+          Keyboard.press(FUNCTION_FACE[(buffp[x].row)][(buffp[x].col)]);
+          break;
+        case LOWER :
+          Serial.printf("LOWER\n");
+          Keyboard.press(LOWER_FACE[(buffp[x].row)][(buffp[x].col)]);
+          break;
+        case RAISE :
+          Serial.printf("RAISE\n");
+          Keyboard.press(RAISE_FACE[(buffp[x].row)][(buffp[x].col)]);
+          break;
+        default:
+          Serial.printf("DEFAULT\n");
+          Keyboard.press(DEFAULT_FACE[(buffp[x].row)][(buffp[x].col)]);
+      }
       buffp[x].row = -1;
       buffp[x].col = -1;
       //Keyboard.press(KEY_A);
     }
   }
-  free(choosenLayer);
 }
 
 
