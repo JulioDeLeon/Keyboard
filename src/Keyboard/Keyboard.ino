@@ -11,8 +11,8 @@ void setup() {
   }
   
   for(int x = 0; x < NUM_COLS; x++) {
-    buttons[x] = Bounce(COLS[x], BOUNCE_TIME);
     pinMode(COLS[x], INPUT_PULLUP);
+    buttons[x] = Bounce(COLS[x], BOUNCE_TIME);
   }
   
   buff = (Coord*) malloc(sizeof(Coord) * NUM_OF_FINGERS);
@@ -154,9 +154,9 @@ bool checkKey(Coord coord) {
 void setRow(int rowp) {
    for(int x = 0; x < NUM_ROWS; x++) {
     if (x != rowp) {
-      pinMode(ROWS[x], INPUT_PULLUP);
+      digitalWrite(ROWS[x], HIGH);
     } else {
-      pinMode(ROWS[x], OUTPUT);
+      digitalWrite(ROWS[x], LOW);
     }
   }
 }
