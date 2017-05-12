@@ -1,15 +1,17 @@
 #include "types.h"
 Coord *buff;
+Bounce *buttons;
 
 void setup() {
   Serial.begin(9600);
-  
+  buttons = (Bounce*) malloc(sizeof(Bounce) * NUM_COLS);
   for(int x = 0; x < NUM_ROWS; x++) {
     pinMode(ROWS[x], OUTPUT);
     digitalWrite(ROWS[x], LOW);
   }
-
+  
   for(int x = 0; x < NUM_COLS; x++) {
+    buttons[x] = Bounce(COLS[x], BOUNCE_TIME);
     pinMode(COLS[x], INPUT_PULLUP);
   }
   
@@ -25,13 +27,19 @@ void loop() {
   delay(75);
 }
 
-void scanMatrix(Coord *buffp) {
+void scanMatrix(Coord *buffp) { 
+  for(int x = 0; x < NUM_COLS; x++) {
+    buttons[x].update();
+  }
   Coord *itr = buffp;
   int keysPressed = 0;
   Coord point;
   for(point.row = 0; point.row < NUM_ROWS; point.row++) {
     setRow(point.row);
     for(point.col = 0; point.col < NUM_COLS; point.col++) {
+      if(buttons[point.col].fell()){
+        Serial.printf("falling edge %dx%d\n", point.row, point.col);
+      }
       if(digitalRead(COLS[point.col]) == LOW) {
         //pressed
         (*itr).row = point.row;
