@@ -128,7 +128,7 @@ int checkModifiers(Coord coord) {
   return ret;
 }
 
-bool isShift(Coord coord) { return (coord.row == LEFT_SHIFT_ROW) && (coord.col == LEFT_SHIFT_COL); }
+bool isShift(Coord coord) { return ((coord.row == LEFT_SHIFT_ROW) && (coord.col == LEFT_SHIFT_COL)) || ((coord.row == RIGHT_SHIFT_ROW) && (coord.col == RIGHT_SHIFT_COL)); }
 bool isCtrl(Coord coord) { return (coord.row == LEFT_CTRL_ROW) && (coord.col == LEFT_CTRL_COL); }
 bool isAlt(Coord coord) { return (coord.row == LEFT_ALT_ROW) && (coord.col == LEFT_ALT_COL); }
 bool isGUI(Coord coord) { return (coord.row == LEFT_GUI_ROW) && (coord.col == LEFT_GUI_COL); }
