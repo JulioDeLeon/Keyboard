@@ -21,7 +21,7 @@ void setup() {
 void loop() {
   scanMatrix(buff);
   flushBuff(buff);
- // delay(75);
+  delay(80);
 }
 
 void scanMatrix(Coord *buffp) { 
@@ -30,7 +30,6 @@ void scanMatrix(Coord *buffp) {
   Coord point;
   for(point.row = 0; point.row < NUM_ROWS; point.row++) {
     setRow(point.row);
-    //delay();
     for(point.col = 0; point.col < NUM_COLS; point.col++) {
       if(digitalRead(COLS[point.col]) == LOW) {
         //pressed
