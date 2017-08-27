@@ -1,10 +1,10 @@
 #ifndef TYPES_H
 #define TYPES_H
-#include <Bounce2.h>
 #define u_long unsigned long
 #define NUM_OF_FINGERS 10
 
-const u_long BOUNCE_TIME = 10;
+const int DEBOUNCE_TIME = 5; 
+
 const int ROWS[] = {2,3,4,5,6};
 const int NUM_ROWS = 5;
 const int COLS[] = {7,8,14,15,16,18,17,19,20,21,22,23};
