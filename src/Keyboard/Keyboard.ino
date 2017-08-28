@@ -20,7 +20,7 @@ void setup() {
 
 void loop() {
   scanMatrix(buff);
-  flushBuff(buff);
+  flushBuff2(buff);
   delay(80);
 }
 
@@ -48,7 +48,7 @@ void scanMatrix(Coord *buffp) {
         Keyboard.release(FUNCTION_FACE[point.row][point.col]);
         Keyboard.release(LOWER_FACE[point.row][point.col]);
         Keyboard.release(RAISE_FACE[point.row][point.col]);
-      }
+      } 
     }
   }
 }
@@ -103,6 +103,165 @@ void flushBuff(Coord *buffp) {
   }
 }
 
+void flushBuff2(Coord *buffp) {
+  //check buffer for modifiers
+  int modifiers = 0;
+  int code = 0;
+  int mediaCount = 0;
+  int mediaCodes[MAX_BASE_KEYS];
+  bool r = false;
+  bool l = false;
+  bool f = false;
+  layer face = BASE;
+
+  // So OSes wil support NKey however those keys need to be 6 non modifier keys
+  // and 4 modifier keys. So the output buffer will contain non modifier keys. 
+  int baseKeyCount = 0;
+  
+  for(int x = 0; x < NUM_OF_FINGERS; x++) {
+    modifiers |= checkModifiers(buffp[x]);
+    //perform layer check if not trigger yet
+    if(r == false) {
+      r = isRaise(buffp[x]);
+    }
+    if(l == false) {
+      l = isLower(buffp[x]);
+    }
+    if(f == false) {
+      f  = isFunction(buffp[x]);
+    }
+
+    if(isModifier(buffp[x])){
+      buffp[x].col = -1;
+      buffp[x].row = -1;
+    }
+  }
+
+  //set layer and modifiers
+  face = checkLayer(l,r,f);
+  Keyboard.set_modifier(modifiers);
+
+  //set output keys
+  for(int x = 0; x < NUM_OF_FINGERS; x++) {
+    if( (0 <= buffp[x].row && buffp[x].row < NUM_ROWS) && (0 <= buffp[x].col && buffp[x].col < NUM_COLS) ) {
+      Serial.printf("%dx%d ", buffp[x].row, buffp[x].col);
+      switch(face) {
+        case FUNCTION :
+          Serial.printf("FUNCTION\n");
+          //Keyboard.press(FUNCTION_FACE[(buffp[x].row)][(buffp[x].col)]);
+          code = FUNCTION_FACE[(buffp[x].row)][(buffp[x].col)];
+          if(isMediaCode(code)){
+            mediaCodes[mediaCount] = code;
+            mediaCount++;
+          } else {
+            setOutputHelper(baseKeyCount, code);    
+          }
+          baseKeyCount++;
+          break;
+        case LOWER :
+          Serial.printf("LOWER\n");
+          //Keyboard.press(LOWER_FACE[(buffp[x].row)][(buffp[x].col)]);
+          code = LOWER_FACE[(buffp[x].row)][(buffp[x].col)];
+          if(isMediaCode(code)){
+            mediaCodes[mediaCount] = code;
+            mediaCount++;
+          } else {
+            setOutputHelper(baseKeyCount, code);    
+          }
+          baseKeyCount++;
+          break;
+        case RAISE :
+          Serial.printf("RAISE\n");
+          //Keyboard.press(RAISE_FACE[(buffp[x].row)][(buffp[x].col)]);
+          code = RAISE_FACE[(buffp[x].row)][(buffp[x].col)];
+          if(isMediaCode(code)){
+            mediaCodes[mediaCount] = code;
+            mediaCount++;
+          } else {
+            setOutputHelper(baseKeyCount, code);    
+          }
+          baseKeyCount++;
+          break;
+        default:
+          Serial.printf("DEFAULT\n");
+          //Keyboard.press(DEFAULT_FACE[(buffp[x].row)][(buffp[x].col)]);
+          code = DEFAULT_FACE[(buffp[x].row)][(buffp[x].col)];
+          if(isMediaCode(code)){
+            mediaCodes[mediaCount] = code;
+            mediaCount++;
+          } else {
+            setOutputHelper(baseKeyCount, code);    
+          }
+          baseKeyCount++;
+      }
+      buffp[x].row = -1;
+      buffp[x].col = -1;
+    }
+  }
+  //zero out unused keypresses
+  zeroRestOutputHelper(baseKeyCount);
+
+  //send keyboard output
+  Keyboard.send_now();
+
+  //handle media keys
+  for(int x = 0; x < mediaCount; x++) {
+    Keyboard.press(mediaCodes[x]);
+  }
+}
+
+void setOutputHelper (int outputNumber, int keyCode) {
+  switch(outputNumber) {
+    case 0:
+      Keyboard.set_key1(keyCode);
+      break;
+    case 1:
+      Keyboard.set_key2(keyCode);
+      break;
+    case 2:
+      Keyboard.set_key3(keyCode);
+      break;
+    case 3:
+      Keyboard.set_key4(keyCode);
+      break;
+    case 4:
+      Keyboard.set_key5(keyCode);
+      break;
+    case 5:
+      Keyboard.set_key6(keyCode);
+      break;
+    default:
+      return;     
+  }  
+}
+
+void zeroRestOutputHelper (int startIndex) {
+  for (int x = startIndex; x < MAX_BASE_KEYS; x++) {
+    switch(x) {
+      case 0:
+        Keyboard.set_key1(0);
+        break;
+      case 1:
+        Keyboard.set_key2(0);
+        break;
+      case 2:
+        Keyboard.set_key3(0);
+        break;
+      case 3:
+        Keyboard.set_key4(0);
+        break;
+      case 4:
+        Keyboard.set_key5(0);
+        break;
+      case 5:
+        Keyboard.set_key6(0);
+        break;
+      default:
+        return;     
+    }    
+  }
+}
+
 
 layer checkLayer(bool l, bool r, bool f) {
   //function layer trumps other layers
@@ -137,6 +296,22 @@ bool isGUI(Coord coord) { return (coord.row == LEFT_GUI_ROW) && (coord.col == LE
 bool isRaise(Coord coord) { return (coord.row == RAISE_MOD_ROW) && (coord.col == RAISE_MOD_COL); }
 bool isLower(Coord coord) { return (coord.row == LOWER_MOD_ROW) && (coord.col == LOWER_MOD_COL); }
 bool isFunction(Coord coord) { return ((coord.row == LEFT_FUNCTION_ROW_1) && (coord.col == LEFT_FUNCTION_COL_1)) || ((coord.row == LEFT_FUNCTION_ROW_2) && (coord.col == LEFT_FUNCTION_COL_2)); }
+
+bool isModifier(Coord coord) {
+  return isShift(coord) || isCtrl(coord) || isAlt(coord) || isGUI(coord) || isRaise(coord) || isLower(coord) || isFunction(coord);
+}
+
+bool isMediaCode(int code) {
+  //  {0,0,KEY_MEDIA_PREV_TRACK,KEY_MEDIA_PLAY_PAUSE,KEY_MEDIA_NEXT_TRACK,0,0,KEY_PAGE_UP,KEY_UP,KEY_PAGE_DOWN,KEY_PRINTSCREEN,0,},
+  //{0,0,KEY_MEDIA_VOLUME_DEC,KEY_MEDIA_VOLUME_INC,KEY_MEDIA_MUTE,0
+  return code == KEY_MEDIA_PREV_TRACK 
+      || code == KEY_MEDIA_NEXT_TRACK
+      || code == KEY_MEDIA_PLAY_PAUSE
+      || code == KEY_MEDIA_VOLUME_DEC
+      || code == KEY_MEDIA_VOLUME_INC
+      || code == KEY_MEDIA_MUTE
+      || code == KEY_NUM_LOCK;
+}
 
 bool checkKey(Coord coord) {
   setRow(coord.row);

@@ -2,8 +2,8 @@
 #define TYPES_H
 #define u_long unsigned long
 #define NUM_OF_FINGERS 10
-
-const int DEBOUNCE_TIME = 5; 
+#define DEBOUNCE_TIME 1
+#define MAX_BASE_KEYS 6
 
 const int ROWS[] = {2,3,4,5,6};
 const int NUM_ROWS = 5;
@@ -87,6 +87,8 @@ bool isAlt(Coord coord);
 bool isGUI(Coord coord);
 bool isRaise(Coord coord);
 bool isLower(Coord coord);
+bool isModifier(Coord coord);
+bool isMediaCode(int code);
 void setRow(int row);
 void scanMatrix(Coord *buff);
 void flushBuff(Coord *buff);
