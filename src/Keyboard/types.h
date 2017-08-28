@@ -4,6 +4,7 @@
 #define NUM_OF_FINGERS 10
 #define DEBOUNCE_TIME 1
 #define MAX_BASE_KEYS 6
+#define CYCLE_DELAY_TIME 45
 
 const int ROWS[] = {2,3,4,5,6};
 const int NUM_ROWS = 5;

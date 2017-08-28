@@ -21,7 +21,7 @@ void setup() {
 void loop() {
   scanMatrix(buff);
   flushBuff2(buff);
-  delay(80);
+  delay(CYCLE_DELAY_TIME);
 }
 
 void scanMatrix(Coord *buffp) { 
