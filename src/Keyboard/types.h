@@ -4,7 +4,12 @@
 #define NUM_OF_FINGERS 10
 #define DEBOUNCE_TIME 1
 #define MAX_BASE_KEYS 6
+#define MAX_MOUSE_ACTIONS 6
 #define CYCLE_DELAY_TIME 45
+
+enum layer { BASE, LOWER, RAISE, FUNCTION };
+enum mouseAction { UP, DWN, LFT, RGHT, LCLK, RCLK, NON };
+enum outputType { KEYBOARD, MOUSE };
 
 const int ROWS[] = {2,3,4,5,6};
 const int NUM_ROWS = 5;
@@ -39,7 +44,26 @@ const int LEFT_SHIFT_ROW = 3;
 const int RIGHT_SHIFT_COL = 11;
 const int RIGHT_SHIFT_ROW = 3;
 
-enum layer { BASE, LOWER, RAISE, FUNCTION };
+const int MOVE_MOUSE_LEFT_COL = 7;
+const int MOVE_MOUSE_LEFT_ROW = 2;
+
+const int MOVE_MOUSE_RIGHT_COL = 9;
+const int MOVE_MOUSE_RIGHT_ROW = 2;
+
+const int MOVE_MOUSE_DOWN_COL = 8;
+const int MOVE_MOUSE_DOWN_ROW = 2;
+
+const int MOVE_MOUSE_UP_COL = 8;
+const int MOVE_MOUSE_UP_ROW = 1;
+
+const int MOUSE_LEFT_CLICK_COL = 7;
+const int MOUSE_LEFT_CLICK_ROW = 1;
+
+const int MOUSE_RIGHT_CLICK_COL = 9;
+const int MOUSE_RIGHT_CLICK_ROW = 1;
+
+const layer MOUSE_LAYER = RAISE;
+const int DEFAULT_MOUSE_DISTANCE = 20;
 
 const int DEFAULT_FACE[NUM_ROWS][NUM_COLS] = {
   {KEY_ESC,KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0,KEY_BACKSPACE},
@@ -93,5 +117,12 @@ bool isMediaCode(int code);
 void setRow(int row);
 void scanMatrix(Coord *buff);
 void flushBuff(Coord *buff);
+//Mouse functions are considered mouse functions in this case
+mouseAction getMouseAction(Coord coord, layer l);
+void handleMouseAction(mouseAction action);
+bool isMouseLeft(Coord coord);
+bool iaMouseRight(Coord coord);
+
+void interpretPress(Coord coord, layer face, int *baseKeyCount, int *mediaBuff, int *mediaCount, mouseAction * mouseBuff, int *mouseActionCount);
 
 #endif
