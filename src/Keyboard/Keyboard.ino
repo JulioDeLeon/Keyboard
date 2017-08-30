@@ -48,6 +48,12 @@ void scanMatrix(Coord *buffp) {
         Keyboard.release(FUNCTION_FACE[point.row][point.col]);
         Keyboard.release(LOWER_FACE[point.row][point.col]);
         Keyboard.release(RAISE_FACE[point.row][point.col]);
+        if(isMouseLeft(point)) {
+          Mouse.release(MOUSE_LEFT);
+        }
+        if(isMouseRight(point)) {
+          Mouse.release(MOUSE_RIGHT);
+        }
       } 
     }
   }
@@ -106,9 +112,15 @@ void flushBuff(Coord *buffp) {
 void flushBuff2(Coord *buffp) {
   //check buffer for modifiers
   int modifiers = 0;
-  int code = 0;
+  
+  // media actions that cant be handle by mirco manager
   int mediaCount = 0;
   int mediaCodes[MAX_BASE_KEYS];
+
+  // mouse actions that cant be handle by keyboard actions
+  int mouseActions = 0;
+  mouseAction mouseCodes[MAX_MOUSE_ACTIONS];
+  
   bool r = false;
   bool l = false;
   bool f = false;
@@ -130,7 +142,7 @@ void flushBuff2(Coord *buffp) {
     if(f == false) {
       f  = isFunction(buffp[x]);
     }
-
+    
     if(isModifier(buffp[x])){
       buffp[x].col = -1;
       buffp[x].row = -1;
@@ -145,58 +157,11 @@ void flushBuff2(Coord *buffp) {
   for(int x = 0; x < NUM_OF_FINGERS; x++) {
     if( (0 <= buffp[x].row && buffp[x].row < NUM_ROWS) && (0 <= buffp[x].col && buffp[x].col < NUM_COLS) ) {
       Serial.printf("%dx%d ", buffp[x].row, buffp[x].col);
-      switch(face) {
-        case FUNCTION :
-          Serial.printf("FUNCTION\n");
-          //Keyboard.press(FUNCTION_FACE[(buffp[x].row)][(buffp[x].col)]);
-          code = FUNCTION_FACE[(buffp[x].row)][(buffp[x].col)];
-          if(isMediaCode(code)){
-            mediaCodes[mediaCount] = code;
-            mediaCount++;
-          } else {
-            setOutputHelper(baseKeyCount, code);    
-          }
-          baseKeyCount++;
-          break;
-        case LOWER :
-          Serial.printf("LOWER\n");
-          //Keyboard.press(LOWER_FACE[(buffp[x].row)][(buffp[x].col)]);
-          code = LOWER_FACE[(buffp[x].row)][(buffp[x].col)];
-          if(isMediaCode(code)){
-            mediaCodes[mediaCount] = code;
-            mediaCount++;
-          } else {
-            setOutputHelper(baseKeyCount, code);    
-          }
-          baseKeyCount++;
-          break;
-        case RAISE :
-          Serial.printf("RAISE\n");
-          //Keyboard.press(RAISE_FACE[(buffp[x].row)][(buffp[x].col)]);
-          code = RAISE_FACE[(buffp[x].row)][(buffp[x].col)];
-          if(isMediaCode(code)){
-            mediaCodes[mediaCount] = code;
-            mediaCount++;
-          } else {
-            setOutputHelper(baseKeyCount, code);    
-          }
-          baseKeyCount++;
-          break;
-        default:
-          Serial.printf("DEFAULT\n");
-          //Keyboard.press(DEFAULT_FACE[(buffp[x].row)][(buffp[x].col)]);
-          code = DEFAULT_FACE[(buffp[x].row)][(buffp[x].col)];
-          if(isMediaCode(code)){
-            mediaCodes[mediaCount] = code;
-            mediaCount++;
-          } else {
-            setOutputHelper(baseKeyCount, code);    
-          }
-          baseKeyCount++;
-      }
+      interpretPress(buffp[x], face, &baseKeyCount, &(mediaCodes[mediaCount]), &mediaCount, &(mouseCodes[mouseActions]), &mouseActions);
       buffp[x].row = -1;
       buffp[x].col = -1;
     }
+    //Serial.printf("bk: %d mc: %d ma: %d\n", baseKeyCount, mediaCount, mouseActions);
   }
   //zero out unused keypresses
   zeroRestOutputHelper(baseKeyCount);
@@ -208,6 +173,72 @@ void flushBuff2(Coord *buffp) {
   for(int x = 0; x < mediaCount; x++) {
     Keyboard.press(mediaCodes[x]);
   }
+
+  //hanlde mouse actions
+  for(int x = 0; x < mouseActions; x++) {
+    //Serial.printf("mouse action: %d\n", x);
+    handleMouseAction(mouseCodes[x]);
+  }
+}
+
+void interpretPress(Coord coord, layer face, int *baseKeyCount, int *mediaBuff, int *mediaCount, mouseAction *mouseBuff, int *mouseActionCount){
+  mouseAction act = getMouseAction(coord, face);
+  int code = 0;
+  if (act == NON) {
+    switch(face) {
+      case FUNCTION :
+      Serial.printf("FUNCTION");
+      code = FUNCTION_FACE[(coord.row)][(coord.col)];
+      if(isMediaCode(code)){
+        *mediaBuff = code;
+        (*mediaCount)++;
+      } else {
+        setOutputHelper(*baseKeyCount, code);    
+      }
+      (*baseKeyCount)++;
+      break;
+    case LOWER :
+      Serial.printf("LOWER");
+      //Keyboard.press(LOWER_FACE[(coord.row)][(coord.col)]);
+      code = LOWER_FACE[(coord.row)][(coord.col)];
+      if(isMediaCode(code)){
+        *mediaBuff = code;
+        (*mediaCount)++;
+      } else {
+        setOutputHelper(*baseKeyCount, code);    
+      }
+      (*baseKeyCount)++;
+      break;
+    case RAISE :
+      Serial.printf("RAISE");
+      //Keyboard.press(RAISE_FACE[(coord.row)][(coord.col)]);
+      code = RAISE_FACE[(coord.row)][(coord.col)];
+      if(isMediaCode(code)){
+        *mediaBuff = code;
+        (*mediaCount)++;
+      } else {
+        setOutputHelper(*baseKeyCount, code);    
+      }
+      (*baseKeyCount)++;
+      break;
+    default:
+      Serial.printf("DEFAULT");
+      //Keyboard.press(DEFAULT_FACE[(coord.row)][(coord.col)]);
+      code = DEFAULT_FACE[(coord.row)][(coord.col)];
+      if(isMediaCode(code)){
+        *mediaBuff = code;
+        (*mediaCount)++;
+      } else {
+        setOutputHelper(*baseKeyCount, code);    
+      }
+      (*baseKeyCount)++;
+    }
+  } else {
+    Serial.printf("MOUSE");
+    *mouseBuff = act;
+    (*mouseActionCount)++;
+  }
+  Serial.printf("\n");
 }
 
 void setOutputHelper (int outputNumber, int keyCode) {
@@ -262,7 +293,6 @@ void zeroRestOutputHelper (int startIndex) {
   }
 }
 
-
 layer checkLayer(bool l, bool r, bool f) {
   //function layer trumps other layers
   if (f) {
@@ -311,6 +341,64 @@ bool isMediaCode(int code) {
       || code == KEY_MEDIA_VOLUME_INC
       || code == KEY_MEDIA_MUTE
       || code == KEY_NUM_LOCK;
+}
+
+mouseAction getMouseAction(Coord coord, layer l) {
+  if (l != MOUSE_LAYER) {
+    return NON;
+  } else {
+    if (coord.row == MOVE_MOUSE_LEFT_ROW && coord.col == MOVE_MOUSE_LEFT_COL) {
+      return LFT;
+    } else if (coord.row == MOVE_MOUSE_RIGHT_ROW && coord.col == MOVE_MOUSE_RIGHT_COL) {
+      return RGHT;
+    } else if (coord.row == MOVE_MOUSE_UP_ROW && coord.col == MOVE_MOUSE_UP_COL) {
+      return UP;
+    } else if (coord.row == MOVE_MOUSE_DOWN_ROW && coord.col == MOVE_MOUSE_DOWN_COL) {
+      return DWN;
+    } else if (coord.row == MOUSE_LEFT_CLICK_ROW && coord.col == MOUSE_LEFT_CLICK_COL) {
+      return LCLK;
+    } else if (coord.row == MOUSE_RIGHT_CLICK_ROW && coord.col == MOUSE_RIGHT_CLICK_COL) {
+      return RCLK;
+    } else {
+      return NON;
+    }
+  }
+  Serial.printf("Within getMouseAction, should not be here\n");
+  return NON;
+}
+
+void handleMouseAction(mouseAction action) {
+ switch(action) {
+  case DWN:
+    Mouse.move(0, DEFAULT_MOUSE_DISTANCE);
+    break;
+  case UP:
+    Mouse.move(0, (-1) * DEFAULT_MOUSE_DISTANCE);
+    break;
+  case LFT:
+    Mouse.move((-1) * DEFAULT_MOUSE_DISTANCE, 0);
+    break;
+  case RGHT:
+    Mouse.move(DEFAULT_MOUSE_DISTANCE, 0);
+    break;
+  case LCLK:
+    Mouse.press(MOUSE_LEFT);
+    break;
+  case RCLK:
+    Mouse.press(MOUSE_RIGHT);
+    break;
+  case NON:
+  default:
+    return;
+ }
+}
+
+bool isMouseLeft(Coord coord) {
+  return (coord.row == MOUSE_LEFT_CLICK_ROW) && (coord.col == MOUSE_LEFT_CLICK_COL);
+}
+
+bool isMouseRight(Coord coord) {
+  return (coord.row == MOUSE_RIGHT_CLICK_ROW) && (coord.col == MOUSE_RIGHT_CLICK_COL);
 }
 
 bool checkKey(Coord coord) {
