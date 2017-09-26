@@ -11,13 +11,13 @@ enum layer { BASE, LOWER, RAISE, FUNCTION };
 enum mouseAction { UP, DWN, LFT, RGHT, LCLK, RCLK, NON };
 enum outputType { KEYBOARD, MOUSE };
 
-const int ROWS[] = {2,3,4,5,6};
+//const int ROWS[] = {2,3,4,5,6};
 //const int ROWS[] = {2,3,4,5,6};
 const int ROWS[] = {0,1,2,3,4};
 const int NUM_ROWS = 5;
 //const int COLS[] = {7,8,14,15,16,18,17,19,20,21,22,23};
 const int NUM_COLS = 12;
-const int COLS[] = {13,14,15,16,5,6,7,8,9,10,11,12}
+const int COLS[] = {13,14,15,16,5,6,7,8,9,10,11,12};
 
 const int LEFT_CTRL_COL = 0;
 const int LEFT_CTRL_ROW = 4;

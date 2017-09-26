@@ -39,6 +39,7 @@ void scanMatrix(Coord *buffp) {
           (*itr).col = point.col;
           itr++;
           keysPressed++;
+          Serial.printf("<<<<<<%dx%d>>>>>>\n", point.row, point.col);
           if(keysPressed == NUM_OF_FINGERS) {
             return;
           } 
