@@ -30,6 +30,7 @@ void scanMatrix(Coord *buffp) {
   Coord point;
   for(point.row = 0; point.row < NUM_ROWS; point.row++) {
     setRow(point.row);
+    delay(DEBOUNCE_TIME);
     for(point.col = 0; point.col < NUM_COLS; point.col++) {
       if(digitalRead(COLS[point.col]) == LOW) {
         //pressed
@@ -39,6 +40,7 @@ void scanMatrix(Coord *buffp) {
           (*itr).col = point.col;
           itr++;
           keysPressed++;
+          Serial.printf("<<<<<<%dx%d>>>>>>\n", point.row, point.col);
           if(keysPressed == NUM_OF_FINGERS) {
             return;
           } 
