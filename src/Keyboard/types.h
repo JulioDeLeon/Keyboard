@@ -10,8 +10,8 @@
 enum layer { BASE, LOWER, RAISE, FUNCTION };
 enum mouseAction { UP, DWN, LFT, RGHT, LCLK, RCLK, NON };
 enum outputType { KEYBOARD, MOUSE };
+// Uncomment original ROW[] and COLS[] when flashing gateron board
 
-//const int ROWS[] = {2,3,4,5,6};
 //const int ROWS[] = {2,3,4,5,6};
 const int ROWS[] = {0,1,2,3,4};
 const int NUM_ROWS = 5;
